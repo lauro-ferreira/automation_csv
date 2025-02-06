@@ -1,16 +1,19 @@
-# reads a spreadsheet
-# formats the data
-# and generates a report automatically
 import pandas as pd
 import openpyxl
 
 
-def csv_para_excel(arquivo_csv, arquivo_excel):
-    """Converte um arquivo CSV para Excel"""
-    table = pd.read_csv("statistics-central-government.csv")  # Carrega o arquivo csv
-    table.to_excel(arquivo_excel, index=False)  # Salva como excel
+def format_csv_data(file, separador=","):
+    """Formata os dados csv"""
+    colunas_principais = ["Period", "Data_value", "STATUS", "Series_title_1", "UNITS"]
+    df = pd.read_csv(file, sep=separador)
 
-    print(f"Convertido com sucesso:{arquivo_excel}")
+    # Apenas colunas principais
+    df = df[colunas_principais]
 
+    # Formato limpo de dados
+    df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-csv_para_excel("statistics.csv", "relatorio.xlsx")
+    # Formatando "data_value"
+    df["data_value"] = df["data_value"].apply(lambda x: f"${x:,.2f}")
+    return df
+
