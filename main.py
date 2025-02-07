@@ -1,5 +1,4 @@
 import pandas as pd
-from openpyxl import load_workbook
 from openpyxl.styles import Font, Alignment
 
 
@@ -20,14 +19,7 @@ def format_csv_data(file, separador=","):
 
 
 def convert_csv_to_xlsx(file_csv, file_xlsx, separador=","):
-    """
-    Converte um CSV formatado para XLSX.
-
-    Parâmetros:
-    file_csv (str): Caminho do arquivo CSV de entrada.
-    file_xlsx (str): Caminho do arquivo XLSX de saída.
-    separador (str): Separador do CSV (padrão: ",").
-    """
+    """Converte um CSV formatado para XLSX."""
     # Formatar o CSV antes de converter
     df_formatado = format_csv_data(file_csv, separador)
 
@@ -36,17 +28,8 @@ def convert_csv_to_xlsx(file_csv, file_xlsx, separador=","):
     print(f"Arquivo salvo como: {file_xlsx}")
 
 
-convert_csv_to_xlsx("statistics-central-government.csv", "dados_formatados.xlsx")
-
-
 def generate_report(file_xlsx, report_xlsx):
-    """
-    Gera um relatório formatado a partir do arquivo XLSX.
-
-    Parâmetros:
-    file_xlsx (str): Caminho do arquivo XLSX formatado.
-    report_xlsx (str): Caminho do arquivo de relatório XLSX.
-    """
+    """Gera um relatório formatado a partir do arquivo XLSX."""
 
     # Carregar os dados formatados
     df = pd.read_excel(file_xlsx)
@@ -78,3 +61,7 @@ def generate_report(file_xlsx, report_xlsx):
 
         # Salvar relatório formatado
         workbook.save(report_xlsx)
+
+
+convert_csv_to_xlsx("statistics-central-government.csv", "dados.xlsx", ",")
+generate_report("dados.xlsx", "relatorio.xlsx")
