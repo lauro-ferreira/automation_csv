@@ -1,53 +1,58 @@
+import smtplib
 import pandas as pd
 from openpyxl.styles import Font, Alignment
+from email.message import EmailMessage
 
 
-def format_csv_data(file, separador=","):
-    """Formata os dados csv"""
-    colunas_principais = ["Period", "Data_value", "STATUS", "Series_title_1", "UNITS"]
-    df = pd.read_csv(file, sep=separador)
+def format_csv_data(file, separator=","):
+    """Formats CSV data"""
+    main_columns = ["Period", "Data_value", "STATUS", "Series_title_1", "UNITS"]
+    df = pd.read_csv(file, sep=separator)
 
-    # Apenas colunas principais
-    df = df[colunas_principais]
+    # Only main columns
+    df = df[main_columns]
 
-    # Formato limpo de dados
+    # Clean data format
     df.columns = df.columns.str.strip().str.lower().str.replace(" ", "_")
 
-    # Formatando "data_value"
+    # Formatting "data_value"
     df["data_value"] = df["data_value"].apply(lambda x: f"${x:,.2f}")
     return df
 
 
-def convert_csv_to_xlsx(file_csv, file_xlsx, separador=","):
-    """Converte um CSV formatado para XLSX."""
-    # Formatar o CSV antes de converter
-    df_formatado = format_csv_data(file_csv, separador)
+def convert_csv_to_xlsx(csv_file, xlsx_file, separator=","):
+    """Converts a formatted CSV to XLSX."""
+    # Format the CSV before converting
+    formatted_df = format_csv_data(csv_file, separator)
 
-    # Salvar como Excel (XLSX)
-    df_formatado.to_excel(file_xlsx, index=False)
-    print(f"Arquivo salvo como: {file_xlsx}")
+    # Save as Excel (XLSX)
+    formatted_df.to_excel(xlsx_file, index=False)
+    print(f"File saved as: {xlsx_file}")
 
 
-def generate_report(file_xlsx, report_xlsx):
-    """Gera um relatório formatado a partir do arquivo XLSX."""
+convert_csv_to_xlsx("statistics-central-government.csv", "file.xlsx", ",")
 
-    # Carregar os dados formatados
-    df = pd.read_excel(file_xlsx)
 
-    # Criar um escritor Excel para aplicar formatação
+def generate_report(xlsx_file, report_xlsx):
+    """Generates a formatted report from the XLSX file."""
+
+    # Load formatted data
+    df = pd.read_excel(xlsx_file)
+
+    # Create an Excel writer to apply formatting
     with pd.ExcelWriter(report_xlsx, engine="openpyxl") as writer:
-        df.to_excel(writer, sheet_name="Relatório", index=False)
+        df.to_excel(writer, sheet_name="Report", index=False)
 
-        # Carregar a planilha para aplicar estilos
+        # Load the worksheet to apply styles
         workbook = writer.book
-        sheet = workbook["Relatório"]
+        sheet = workbook["Report"]
 
-        # Ajustar cabeçalhos: negrito e centralizado
+        # Adjust headers: bold and centered
         for cell in sheet[1]:
             cell.font = Font(bold=True)
             cell.alignment = Alignment(horizontal="center")
 
-        # Ajustar largura das colunas automaticamente
+        # Adjusting column width
         for column in sheet.columns:
             max_length = 0
             col_letter = column[0].column_letter
@@ -59,9 +64,31 @@ def generate_report(file_xlsx, report_xlsx):
             adjusted_width = max_length + 2
             sheet.column_dimensions[col_letter].width = adjusted_width
 
-        # Salvar relatório formatado
+        # Save formatted report
         workbook.save(report_xlsx)
 
 
-convert_csv_to_xlsx("statistics-central-government.csv", "dados.xlsx", ",")
-generate_report("dados.xlsx", "relatorio.xlsx")
+generate_report("file.xlsx", "report.xlsx")
+
+
+email = "your email"
+with open("password.txt") as f:
+    password = f.readlines()
+
+    f.close()
+
+    email_password = password[0]
+
+msg = EmailMessage()
+msg["Subject"] = "Central Government Statistics Report"
+msg["From"] = "your email"
+msg["To"] = "recipient email"
+msg.set_content("Attached is the statistics report:")
+
+with open("report.xlsx", "rb") as re:
+    content = re.read()
+    msg.add_attachment(content, maintype="application", subtype="xlsx", filename="report.xlsx")
+
+with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+    smtp.login(email, email_password)
+    smtp.send_message(msg)
